@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexura AI - AI for Website Builders</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --gold:#D4AF37;--gold2:#FFD700;--gold3:#B8960C;
+    --dark:#080808;--dark2:#0f0f0f;--dark3:#1a1a1a;
+    --white:#ffffff;--gray:#888;--gray2:#555;
+    --accent:#D4AF37;--red:#ff4444;--green:#00c851;
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:'Space Grotesk',sans-serif;background:var(--dark);color:var(--white);overflow-x:hidden}
+  
+  /* ===== LANDING PAGE ===== */
+  #landing{min-height:100vh;position:relative;overflow:hidden}
+  
+  #three-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  
+  .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(8,8,8,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,0.1)}
+  .nav-logo{font-size:24px;font-weight:700;color:var(--gold);letter-spacing:2px}
+  .nav-logo span{color:var(--white)}
+  .nav-links{display:flex;gap:40px;list-style:none}
+  .nav-links a{color:var(--gray);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:1px;transition:.3s}
+  .nav-links a:hover{color:var(--gold)}
+  .nav-cta{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;padding:12px 28px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px;transition:.3s;text-transform:uppercase}
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(212,175,55,0.4)}
+  
+  .hero{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;padding:100px 60px 60px}
+  .hero-content{max-width:600px}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);padding:8px 16px;border-radius:50px;font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:30px;text-transform:uppercase}
+  .hero-badge::before{content:'';width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+  .hero h1{font-size:72px;font-weight:700;line-height:1.05;margin-bottom:24px;letter-spacing:-1px}
+  .hero h1 .gold{background:linear-gradient(135deg,var(--gold),#fff,var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero p{font-size:18px;color:var(--gray);line-height:1.7;margin-bottom:40px;font-weight:300}
+  .hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+  .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;padding:16px 36px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;cursor:pointer;letter-spacing:1px;transition:.3s;text-transform:uppercase;position:relative;overflow:hidden}
+  .btn-primary::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,.2),transparent);transform:rotate(45deg) translateX(-100%);transition:.6s}
+  .btn-primary:hover::after{transform:rotate(45deg) translateX(100%)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 20px 40px rgba(212,175,55,0.3)}
+  .btn-secondary{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.2);padding:16px 36px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:15px;cursor:pointer;letter-spacing:1px;transition:.3s}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+  
+  .hero-robot{position:absolute;right:0;top:50%;transform:translateY(-50%);width:55%;height:100vh;display:flex;align-items:center}
+  .robot-embed{width:100%;height:100%;border:none;background:transparent}
+  
+  .stats-row{display:flex;gap:40px;margin-top:60px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.05)}
+  .stat-item{text-align:left}
+  .stat-num{font-size:36px;font-weight:700;color:var(--gold);line-height:1}
+  .stat-label{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  
+  /* Section: N animation scroll */
+  #n-section{min-height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,var(--dark) 0%,#0a0800 100%)}
+  .n-scene{position:relative;width:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:40px;padding:80px 60px}
+  .n-hands-container{position:relative;width:600px;height:500px;display:flex;align-items:center;justify-content:center}
+  #n-3d-canvas{position:absolute;inset:0;width:100%;height:100%}
+  .n-text{position:relative;z-index:10;font-size:200px;font-weight:900;color:transparent;-webkit-text-stroke:2px var(--gold);letter-spacing:-5px;text-shadow:0 0 80px rgba(212,175,55,0.3);animation:float3d 4s ease-in-out infinite;pointer-events:none}
+  @keyframes float3d{0%,100%{transform:translateY(0) rotateY(0deg)}25%{transform:translateY(-20px) rotateY(10deg)}75%{transform:translateY(10px) rotateY(-10deg)}}
+  .hands-svg{position:absolute;width:100%;height:100%;z-index:5}
+  .n-caption{text-align:center;color:var(--gray);font-size:16px;letter-spacing:3px;text-transform:uppercase}
+  
+  /* Features section */
+  .features-section{padding:100px 60px;background:var(--dark2)}
+  .section-header{text-align:center;margin-bottom:70px}
+  .section-label{font-size:11px;color:var(--gold);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px}
+  .section-title{font-size:48px;font-weight:700;line-height:1.1}
+  .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .feature-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:36px;transition:.3s;cursor:pointer;position:relative;overflow:hidden}
+  .feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,175,55,0.05),transparent);opacity:0;transition:.3s}
+  .feature-card:hover::before{opacity:1}
+  .feature-card:hover{border-color:rgba(212,175,55,0.3);transform:translateY(-4px)}
+  .feature-icon{width:52px;height:52px;background:rgba(212,175,55,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:24px}
+  .feature-title{font-size:18px;font-weight:600;margin-bottom:10px}
+  .feature-desc{font-size:14px;color:var(--gray);line-height:1.7}
+  
+  /* Footer */
+  footer{padding:40px 60px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center;background:var(--dark)}
+  footer p{color:var(--gray);font-size:13px}
+  
+  /* ===== APP PAGES ===== */
+  .page{display:none;position:fixed;inset:0;z-index:200;background:var(--dark);overflow-y:auto}
+  .page.active{display:flex;flex-direction:column}
+  
+  /* ===== ONBOARDING ===== */
+  #onboarding{background:var(--dark);align-items:center;justify-content:center}
+  .onboard-wrap{width:100%;max-width:520px;padding:20px}
+  .onboard-logo{text-align:center;font-size:28px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:10px}
+  .onboard-subtitle{text-align:center;color:var(--gray);font-size:14px;margin-bottom:40px}
+  .onboard-step{display:none}
+  .onboard-step.active{display:block;animation:fadeUp .5s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .step-title{font-size:22px;font-weight:700;margin-bottom:8px}
+  .step-sub{font-size:14px;color:var(--gray);margin-bottom:30px;line-height:1.6}
+  .theme-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:30px}
+  .theme-option{border:2px solid rgba(255,255,255,0.1);border-radius:14px;padding:28px;cursor:pointer;transition:.3s;text-align:center;position:relative;overflow:hidden}
+  .theme-option.dark-opt{background:rgba(0,0,0,0.8)}
+  .theme-option.light-opt{background:rgba(255,255,255,0.95);color:#111}
+  .theme-option:hover{border-color:var(--gold)}
+  .theme-option.selected{border-color:var(--gold);box-shadow:0 0 20px rgba(212,175,55,0.2)}
+  .theme-check{position:absolute;top:12px;right:12px;width:22px;height:22px;background:var(--gold);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:700}
+  .theme-option.selected .theme-check{display:flex}
+  .theme-preview{width:100%;height:70px;border-radius:8px;margin-bottom:12px;overflow:hidden;display:flex;gap:4px;padding:8px}
+  .preview-sidebar{width:30%;border-radius:4px}
+  .preview-main{flex:1;border-radius:4px}
+  .dark-opt .preview-sidebar{background:#1a1a1a}
+  .dark-opt .preview-main{background:#111}
+  .light-opt .preview-sidebar{background:#e5e5e5}
+  .light-opt .preview-main{background:#f5f5f5}
+  .theme-name{font-size:15px;font-weight:600}
+  .theme-desc{font-size:12px;opacity:0.6;margin-top:4px}
+  .form-group{margin-bottom:20px}
+  .form-label{font-size:13px;color:var(--gray);margin-bottom:8px;display:block;letter-spacing:.5px;text-transform:uppercase}
+  .form-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:15px;outline:none;transition:.3s}
+  .form-input:focus{border-color:var(--gold);background:rgba(212,175,55,0.05)}
+  .form-input::placeholder{color:var(--gray2)}
+  .light-form .form-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.15);color:#111}
+  .light-form .form-input:focus{border-color:#333;background:rgba(0,0,0,0.07)}
+  .light-form .form-input::placeholder{color:#999}
+  .light-form .form-label{color:#666}
+  .onboard-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;padding:16px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;cursor:pointer;letter-spacing:1px;transition:.3s;text-transform:uppercase}
+  .onboard-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(212,175,55,0.3)}
+  .progress-dots{display:flex;gap:8px;justify-content:center;margin-bottom:30px}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);transition:.3s}
+  .dot.active{background:var(--gold);width:24px;border-radius:4px}
+  
+  /* ===== CHAT APP ===== */
+  #chat-app{flex-direction:row;background:var(--dark)}
+  
+  /* Sidebar */
+  .chat-sidebar{width:260px;min-width:260px;border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;background:var(--dark2)}
+  .sidebar-top{padding:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .sidebar-logo{font-size:17px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .sidebar-logo-dot{width:8px;height:8px;background:var(--gold);border-radius:50%}
+  .sidebar-search{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:9px 12px}
+  .sidebar-search input{background:none;border:none;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;flex:1}
+  .sidebar-search input::placeholder{color:var(--gray2)}
+  .sidebar-search-icon{color:var(--gray);font-size:14px}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+  .sidebar-nav::-webkit-scrollbar{width:4px}
+  .sidebar-nav::-webkit-scrollbar-track{background:transparent}
+  .sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+  .nav-section-label{font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;padding:12px 8px 6px;font-weight:600}
+  .history-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:.2s;position:relative;group:true}
+  .history-item:hover{background:rgba(255,255,255,0.05)}
+  .history-item.active{background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.2)}
+  .history-item-icon{width:30px;height:30px;border-radius:8px;background:rgba(212,175,55,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .history-item-text{flex:1;min-width:0}
+  .history-item-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history-item-time{font-size:11px;color:var(--gray2);margin-top:1px}
+  .history-item-dots{color:var(--gray2);font-size:16px;opacity:0;transition:.2s;cursor:pointer}
+  .history-item:hover .history-item-dots{opacity:1}
+  
+  .sidebar-nav-icons{display:flex;flex-direction:column}
+  .nav-icon-item{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:8px;cursor:pointer;transition:.2s;font-size:14px;color:var(--gray);margin-bottom:2px}
+  .nav-icon-item:hover{background:rgba(255,255,255,0.05);color:var(--white)}
+  .nav-icon-item.active{background:rgba(212,175,55,0.12);color:var(--gold)}
+  .nav-icon-item svg{width:18px;height:18px;flex-shrink:0}
+  
+  .sidebar-bottom{padding:14px;border-top:1px solid rgba(255,255,255,0.06)}
+  .upgrade-card{background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:14px;cursor:pointer;transition:.3s}
+  .upgrade-card:hover{border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.15)}
+  .upgrade-title{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px}
+  .upgrade-desc{font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.5}
+  .upgrade-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;padding:9px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.5px}
+  .user-info{display:flex;align-items:center;gap:10px;padding:12px 0 0}
+  .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#000;flex-shrink:0}
+  .user-name{font-size:13px;font-weight:600}
+  .user-email{font-size:11px;color:var(--gray);margin-top:1px}
+  
+  /* Main Chat Area */
+  .chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .chat-header{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,8,0.8);backdrop-filter:blur(10px);flex-shrink:0}
+  .chat-header-welcome{font-size:13px;color:var(--gray);letter-spacing:1px;text-transform:uppercase}
+  .chat-header-name{font-size:15px;font-weight:700;color:var(--gold);letter-spacing:1px}
+  .chat-header-right{display:flex;align-items:center;gap:12px}
+  .limit-badge{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--gold)}
+  
+  /* When no right panel: chat takes full width */
+  /* When right panel: chat + preview split */
+  .chat-body{flex:1;display:flex;min-height:0}
+  .chat-messages-area{flex:1;display:flex;flex-direction:column;min-width:0}
+  .messages-scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+  .messages-scroll::-webkit-scrollbar{width:4px}
+  .messages-scroll::-webkit-scrollbar-track{background:transparent}
+  .messages-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+  
+  .msg{display:flex;gap:12px;animation:msgIn .3s ease}
+  @keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .msg-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .msg.ai .msg-avatar{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000}
+  .msg.user .msg-avatar{background:rgba(255,255,255,0.1);color:var(--white)}
+  .msg.user{flex-direction:row-reverse}
+  .msg-bubble{max-width:70%;padding:14px 16px;border-radius:14px;font-size:14px;line-height:1.7}
+  .msg.ai .msg-bubble{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:var(--white);border-radius:4px 14px 14px 14px}
+  .msg.user .msg-bubble{background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.25);color:var(--white);border-radius:14px 4px 14px 14px}
+  .msg-code{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:12px;margin:8px 0;color:#a9dc76;overflow-x:auto}
+  .typing-indicator{display:flex;gap:5px;align-items:center;padding:4px 0}
+  .typing-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;animation:typingBounce 1.4s infinite}
+  .typing-dot:nth-child(2){animation-delay:.2s}
+  .typing-dot:nth-child(3){animation-delay:.4s}
+  @keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+  
+  /* Input area */
+  .chat-input-area{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+  .chat-tools{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tool-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 16px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--gray);transition:.3s;font-weight:500}
+  .tool-btn:hover{border-color:rgba(212,175,55,0.4);color:var(--gold);background:rgba(212,175,55,0.06)}
+  .tool-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,0.1)}
+  .tool-btn svg{width:16px;height:16px;flex-shrink:0}
+  .chat-input-row{display:flex;gap:12px;align-items:flex-end}
+  .chat-input-box{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:14px 16px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;resize:none;line-height:1.6;transition:.3s;min-height:52px;max-height:140px}
+  .chat-input-box:focus{border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.03)}
+  .chat-input-box::placeholder{color:var(--gray2)}
+  .send-btn{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;width:48px;height:48px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s;flex-shrink:0}
+  .send-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(212,175,55,0.3)}
+  .send-btn svg{width:20px;height:20px}
+  
+  /* Right preview panel */
+  .preview-panel{width:50%;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;background:var(--dark3)}
+  .preview-panel.hidden{display:none}
+  .preview-header{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
+  .preview-title{font-size:14px;font-weight:600;color:var(--white)}
+  .preview-actions{display:flex;gap:8px}
+  .preview-action-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:8px;padding:6px 12px;color:var(--gray);font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:.3s;font-weight:500}
+  .preview-action-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .preview-action-btn.publish{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;font-weight:700}
+  .preview-content{flex:1;position:relative}
+  .preview-iframe{width:100%;height:100%;border:none;background:#fff}
+  .preview-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--dark3)}
+  .build-log{width:100%;max-width:380px;text-align:left}
+  .build-log-title{font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;font-weight:700}
+  .log-line{font-size:12px;font-family:'Courier New',monospace;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;gap:10px;align-items:flex-start;animation:logIn .3s ease}
+  @keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  .log-status{font-size:10px;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:700;letter-spacing:.5px}
+  .log-status.ok{background:rgba(0,200,81,0.15);color:var(--green)}
+  .log-status.run{background:rgba(212,175,55,0.15);color:var(--gold)}
+  .log-status.info{background:rgba(100,100,255,0.1);color:#8888ff}
+  .log-text{color:var(--gray);line-height:1.5}
+  .progress-bar-wrap{width:100%;max-width:380px;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold));border-radius:4px;transition:width .4s ease}
+  
+  /* Video call modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:none;align-items:center;justify-content:center}
+  .modal-overlay.active{display:flex}
+  .videocall-modal{background:var(--dark2);border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:min(700px,95vw);overflow:hidden}
+  .vc-header{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between}
+  .vc-title{font-size:15px;font-weight:700}
+  .vc-close{background:rgba(255,255,255,0.08);border:none;color:var(--white);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+  .vc-body{padding:30px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .vc-user-feed{background:rgba(0,0,0,0.5);border-radius:14px;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid rgba(255,255,255,0.08)}
+  .vc-ai-feed{background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(0,0,0,0.8));border-radius:14px;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid rgba(212,175,55,0.2);position:relative;overflow:hidden}
+  .ai-avatar-vc{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold3));display:flex;align-items:center;justify-content:center;font-size:32px;animation:aiPulse 2s infinite}
+  @keyframes aiPulse{0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.4)}70%{box-shadow:0 0 0 20px rgba(212,175,55,0)}}
+  .vc-label{font-size:12px;color:var(--gray);text-align:center}
+  .vc-label strong{color:var(--white);display:block;font-size:14px;margin-bottom:2px}
+  .vc-controls{grid-column:1/-1;display:flex;justify-content:center;gap:12px;padding-top:8px}
+  .vc-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.3s}
+  .vc-btn.mic{background:rgba(255,255,255,0.1);color:var(--white)}
+  .vc-btn.mic:hover{background:rgba(255,255,255,0.2)}
+  .vc-btn.cam{background:rgba(255,255,255,0.1);color:var(--white)}
+  .vc-btn.cam:hover{background:rgba(255,255,255,0.2)}
+  .vc-btn.end{background:var(--red);color:var(--white)}
+  .vc-btn.end:hover{background:#cc0000}
+  .vc-speech{grid-column:1/-1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;text-align:center;font-size:14px;color:var(--gray);min-height:60px;display:flex;align-items:center;justify-content:center;font-style:italic}
+  
+  /* Publish modal */
+  .publish-modal{background:var(--dark2);border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:min(460px,95vw);padding:36px;text-align:center}
+  .publish-icon{font-size:48px;margin-bottom:20px}
+  .publish-title{font-size:22px;font-weight:700;margin-bottom:8px}
+  .publish-sub{color:var(--gray);font-size:14px;margin-bottom:24px;line-height:1.6}
+  .publish-url{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--gold);font-family:'Courier New',monospace;margin-bottom:20px;word-break:break-all}
+  .publish-actions{display:flex;gap:10px;justify-content:center}
+  .pub-btn{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;padding:12px 24px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:.3s}
+  .pub-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(212,175,55,0.3)}
+  .pub-btn-sec{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--white);padding:12px 24px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer}
+  
+  /* Light theme overrides */
+  body.light #chat-app{background:#f4f4f6}
+  body.light .chat-sidebar{background:#fff;border-color:rgba(0,0,0,0.08)}
+  body.light .sidebar-logo{color:var(--gold3)}
+  body.light .sidebar-search{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1)}
+  body.light .sidebar-search input{color:#111}
+  body.light .sidebar-search input::placeholder{color:#aaa}
+  body.light .nav-section-label{color:#aaa}
+  body.light .history-item:hover{background:rgba(0,0,0,0.04)}
+  body.light .history-item.active{background:rgba(212,175,55,0.12)}
+  body.light .history-item-title{color:#111}
+  body.light .nav-icon-item{color:#888}
+  body.light .nav-icon-item:hover{background:rgba(0,0,0,0.04);color:#111}
+  body.light .sidebar-bottom{border-color:rgba(0,0,0,0.08)}
+  body.light .user-name{color:#111}
+  body.light .chat-main{background:#f4f4f6}
+  body.light .chat-header{background:rgba(244,244,246,0.9);border-color:rgba(0,0,0,0.08)}
+  body.light .chat-header-welcome{color:#888}
+  body.light .msg.ai .msg-bubble{background:#fff;border-color:rgba(0,0,0,0.07);color:#111}
+  body.light .msg.user .msg-bubble{color:#111}
+  body.light .chat-input-area{border-color:rgba(0,0,0,0.07)}
+  body.light .tool-btn{background:#fff;border-color:rgba(0,0,0,0.1);color:#888}
+  body.light .tool-btn:hover{border-color:var(--gold3);color:var(--gold3)}
+  body.light .chat-input-box{background:#fff;border-color:rgba(0,0,0,0.1);color:#111}
+  body.light .chat-input-box::placeholder{color:#bbb}
+  body.light .chat-input-box:focus{border-color:var(--gold3)}
+  body.light .preview-panel{background:#fff;border-color:rgba(0,0,0,0.08)}
+  body.light .preview-header{border-color:rgba(0,0,0,0.08)}
+  body.light .preview-title{color:#111}
+  body.light .preview-action-btn{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:#666}
+  body.light .preview-loading{background:#fafafa}
+  body.light .limit-badge{background:rgba(212,175,55,0.08)}
+  
+  /* Limit toast */
+  .toast{position:fixed;top:20px;right:20px;background:var(--dark2);border:1px solid rgba(212,175,55,0.4);border-radius:12px;padding:14px 20px;font-size:13px;z-index:1000;animation:toastIn .3s ease;max-width:300px}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  
+  /* scroll reveal */
+  .reveal{opacity:0;transform:translateY(30px);transition:.7s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<canvas id="three-canvas"></canvas>
+
+<!-- ===== LANDING PAGE ===== -->
+<div id="landing">
+  <nav class="nav">
+    <div class="nav-logo">NEXURA <span>AI</span></div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#">Pricing</a></li>
+    </ul>
+    <button class="nav-cta" onclick="goToOnboarding()">Get Started</button>
+  </nav>
+  
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">🤖 Powered by Advanced AI</div>
+      <h1>Build <span class="gold">Websites</span><br>With AI</h1>
+      <p>Nexura AI adalah platform AI terdepan untuk pembuat website dan landing page. Dari konsep hingga publish dalam hitungan menit.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="goToOnboarding()">Mulai Gratis →</button>
+        <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Lihat Fitur</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-item"><div class="stat-num">230+</div><div class="stat-label">Website Dibuat</div></div>
+        <div class="stat-item"><div class="stat-num">400+</div><div class="stat-label">Pengguna Aktif</div></div>
+        <div class="stat-item"><div class="stat-num">99%</div><div class="stat-label">Kepuasan</div></div>
+      </div>
+    </div>
+    <div class="hero-robot">
+      <iframe class="robot-embed" src="https://my.spline.design/genkubgreetingrobot-MdQwNQjUybglZMMdQa3j6M1I/" allow="autoplay" loading="lazy" title="Nexura AI Robot"></iframe>
+    </div>
+  </div>
+  
+  <!-- N Scroll Section -->
+  <div id="n-section">
+    <div class="n-scene reveal">
+      <div style="text-align:center;margin-bottom:10px">
+        <span style="font-size:12px;color:var(--gold);letter-spacing:4px;text-transform:uppercase">The Power Behind</span>
+      </div>
+      <div class="n-hands-container" id="n-container">
+        <canvas id="n-3d-canvas"></canvas>
+        <div class="n-text" id="n-letter">N</div>
+        <svg class="hands-svg" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg" id="hands-svg">
+          <!-- Left hand -->
+          <g id="left-hand" opacity="0">
+            <ellipse cx="80" cy="380" rx="55" ry="30" fill="rgba(212,175,55,0.08)" rx="10"/>
+            <path d="M120 350 Q140 280 160 250 Q175 230 190 240 Q200 248 195 268 Q185 300 175 330" stroke="rgba(212,175,55,0.6)" stroke-width="18" fill="none" stroke-linecap="round"/>
+            <path d="M160 310 Q180 260 200 235 Q215 218 228 225 Q237 231 232 252 Q220 285 208 315" stroke="rgba(212,175,55,0.6)" stroke-width="16" fill="none" stroke-linecap="round"/>
+            <path d="M195 322 Q215 278 232 258 Q246 242 257 248 Q265 254 261 272 Q250 302 240 328" stroke="rgba(212,175,55,0.6)" stroke-width="15" fill="none" stroke-linecap="round"/>
+            <path d="M225 335 Q242 300 255 285 Q266 272 274 278 Q280 285 276 300 Q268 320 258 340" stroke="rgba(212,175,55,0.6)" stroke-width="14" fill="none" stroke-linecap="round"/>
+            <!-- Palm -->
+            <ellipse cx="170" cy="355" rx="65" ry="35" fill="rgba(30,20,5,0.9)" stroke="rgba(212,175,55,0.5)" stroke-width="2"/>
+          </g>
+          <!-- Right hand -->
+          <g id="right-hand" opacity="0">
+            <ellipse cx="520" cy="380" rx="55" ry="30" fill="rgba(212,175,55,0.08)"/>
+            <path d="M480 350 Q460 280 440 250 Q425 230 410 240 Q400 248 405 268 Q415 300 425 330" stroke="rgba(212,175,55,0.6)" stroke-width="18" fill="none" stroke-linecap="round"/>
+            <path d="M440 310 Q420 260 400 235 Q385 218 372 225 Q363 231 368 252 Q380 285 392 315" stroke="rgba(212,175,55,0.6)" stroke-width="16" fill="none" stroke-linecap="round"/>
+            <path d="M405 322 Q385 278 368 258 Q354 242 343 248 Q335 254 339 272 Q350 302 360 328" stroke="rgba(212,175,55,0.6)" stroke-width="15" fill="none" stroke-linecap="round"/>
+            <path d="M375 335 Q358 300 345 285 Q334 272 326 278 Q320 285 324 300 Q332 320 342 340" stroke="rgba(212,175,55,0.6)" stroke-width="14" fill="none" stroke-linecap="round"/>
+            <!-- Palm -->
+            <ellipse cx="430" cy="355" rx="65" ry="35" fill="rgba(30,20,5,0.9)" stroke="rgba(212,175,55,0.5)" stroke-width="2"/>
+          </g>
+          <!-- Glow lines from hands to N -->
+          <line x1="235" y1="310" x2="265" y2="280" stroke="rgba(212,175,55,0.15)" stroke-width="1" stroke-dasharray="4,4" id="glow-left"/>
+          <line x1="365" y1="310" x2="335" y2="280" stroke="rgba(212,175,55,0.15)" stroke-width="1" stroke-dasharray="4,4" id="glow-right"/>
+        </svg>
+      </div>
+      <p class="n-caption">Nexura — Membentuk Masa Depan Web</p>
+    </div>
+  </div>
+  
+  <!-- Features -->
+  <div id="features" class="features-section">
+    <div class="section-header reveal">
+      <div class="section-label">Capabilities</div>
+      <h2 class="section-title">Semua yang kamu butuhkan<br>untuk web modern</h2>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">Website Generator</div>
+        <div class="feature-desc">Buat website multi-halaman dengan React, Next.js, Node.js & PostgreSQL. Kualitas production-ready dalam menit.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <div class="feature-title">Landing Page Pro</div>
+        <div class="feature-desc">Landing page satu halaman yang mengkonversi. Desain premium dengan animasi dan UX terbaik.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📹</div>
+        <div class="feature-title">Video Call AI</div>
+        <div class="feature-desc">Konsultasi langsung dengan AI melalui video call. AI yang lucu, cerdas dan memahami kebutuhanmu.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📤</div>
+        <div class="feature-title">Instant Publish</div>
+        <div class="feature-desc">Publish langsung ke nexura.app tanpa domain sendiri. Satu klik, langsung online.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📜</div>
+        <div class="feature-title">Chat History</div>
+        <div class="feature-desc">Semua percakapan tersimpan otomatis. Akses kembali proyek lama kapan saja.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Aman & Terpercaya</div>
+        <div class="feature-desc">Backend aman, database terenkripsi, dan tidak ada data yang bocor. Privasi adalah prioritas.</div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <p>© 2026 Nexura AI. Semua hak dilindungi.</p>
+    <p style="color:var(--gray);font-size:12px">Made with ✦ for web builders</p>
+  </footer>
+</div>
+
+<!-- ===== ONBOARDING ===== -->
+<div id="onboarding" class="page">
+  <div class="onboard-wrap">
+    <div class="onboard-logo">✦ NEXURA AI</div>
+    <div class="onboard-subtitle">Siapkan akun Anda dalam 2 langkah mudah</div>
+    <div class="progress-dots">
+      <div class="dot active" id="dot1"></div>
+      <div class="dot" id="dot2"></div>
+    </div>
+    
+    <!-- Step 1: Theme -->
+    <div class="onboard-step active" id="step1">
+      <div class="step-title">Pilih tema tampilan</div>
+      <div class="step-sub">Pilih tema yang paling nyaman untuk Anda saat berinteraksi dengan Nexura AI.</div>
+      <div class="theme-options">
+        <div class="theme-option dark-opt selected" id="theme-dark" onclick="selectTheme('dark')">
+          <div class="theme-check">✓</div>
+          <div class="theme-preview">
+            <div class="preview-sidebar"></div>
+            <div class="preview-main"></div>
+          </div>
+          <div class="theme-name">Dark Mode</div>
+          <div class="theme-desc">Elegan & profesional</div>
+        </div>
+        <div class="theme-option light-opt" id="theme-light" onclick="selectTheme('light')">
+          <div class="theme-check">✓</div>
+          <div class="theme-preview">
+            <div class="preview-sidebar"></div>
+            <div class="preview-main"></div>
+          </div>
+          <div class="theme-name" style="color:#111">Light Mode</div>
+          <div class="theme-desc" style="color:#666">Bersih & terang</div>
+        </div>
+      </div>
+      <button class="onboard-btn" onclick="nextStep()">Lanjutkan →</button>
+    </div>
+    
+    <!-- Step 2: Name -->
+    <div class="onboard-step" id="step2">
+      <div class="step-title">Siapa nama Anda?</div>
+      <div class="step-sub">Nexura AI akan menyapa Anda dengan nama ini di setiap sesi.</div>
+      <div id="name-form">
+        <div class="form-group">
+          <label class="form-label">Nama Depan</label>
+          <input class="form-input" type="text" id="first-name" placeholder="Contoh: Andi" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nama Belakang</label>
+          <input class="form-input" type="text" id="last-name" placeholder="Contoh: Pratama" autocomplete="family-name">
+        </div>
+      </div>
+      <button class="onboard-btn" onclick="completeOnboarding()">Masuk ke Nexura AI ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CHAT APP ===== -->
+<div id="chat-app" class="page">
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-logo"><div class="sidebar-logo-dot"></div>NEXURA AI</div>
+      <div class="sidebar-search">
+        <span class="sidebar-search-icon">⌕</span>
+        <input type="text" placeholder="Search..." id="sidebar-search-input">
+        <span style="font-size:11px;color:var(--gray2)">⌘F</span>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-icons">
+        <div class="nav-icon-item active" onclick="newChat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Home
+        </div>
+        <div class="nav-icon-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Notifications
+        </div>
+        <div class="nav-icon-item" id="tasks-nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Tasks
+        </div>
+        <div class="nav-icon-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Settings
+        </div>
+      </div>
+      <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px">
+        <div style="font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;padding:8px 8px 4px;font-weight:600">OTHER</div>
+        <div class="nav-icon-item" style="font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Documentation
+        </div>
+        <div class="nav-icon-item" style="font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Refer a Friend
+        </div>
+        <div class="nav-icon-item" style="font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Inbox
+        </div>
+        <div class="nav-icon-item" style="font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Support
+        </div>
+      </div>
+      <div id="history-section" style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px">
+        <div class="nav-section-label">Today</div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="upgrade-card">
+        <div class="upgrade-title">✦ Boost with AI</div>
+        <div class="upgrade-desc">AI-powered replies, tag insights, and tools that save hours.</div>
+        <button class="upgrade-btn">Upgrade to Pro</button>
+      </div>
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar-sidebar">A</div>
+        <div>
+          <div class="user-name" id="user-name-sidebar">User</div>
+          <div class="user-email" id="user-email-sidebar">nexura.app</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main -->
+  <div class="chat-main">
+    <div class="chat-header">
+      <div>
+        <div class="chat-header-welcome">WELCOME TO NEXURA</div>
+        <div class="chat-header-name" id="chat-welcome-name">User</div>
+      </div>
+      <div class="chat-header-right">
+        <div class="limit-badge" id="limit-badge">5 chat tersisa</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700" id="user-avatar-header">A</div>
+      </div>
+    </div>
+    
+    <div class="chat-body">
+      <div class="chat-messages-area" id="chat-messages-area">
+        <div class="messages-scroll" id="messages-container">
+          <!-- Welcome message inserted by JS -->
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-tools">
+            <button class="tool-btn" id="tool-website" onclick="activateTool('website')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              Website Builder
+            </button>
+            <button class="tool-btn" id="tool-landing" onclick="activateTool('landing')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              Landing Page
+            </button>
+            <button class="tool-btn" id="tool-videocall" onclick="openVideoCall()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              Video Call AI
+            </button>
+            <button class="tool-btn" onclick="newChat()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Chat
+            </button>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input-box" id="chat-input" placeholder="Ketik pesan atau describe website yang ingin dibuat..." rows="1" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+          <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--gray2)">Nexura AI dapat membuat website & landing page • <span id="chat-limit-text">5 pesan tersisa hari ini</span></div>
+        </div>
+      </div>
+      
+      <!-- Preview Panel -->
+      <div class="preview-panel hidden" id="preview-panel">
+        <div class="preview-header">
+          <div class="preview-title" id="preview-title">Preview</div>
+          <div class="preview-actions">
+            <button class="preview-action-btn" onclick="refreshPreview()">↻ Refresh</button>
+            <button class="preview-action-btn" onclick="downloadCode()">↓ Download</button>
+            <button class="preview-action-btn publish" onclick="publishSite()">🚀 Publish</button>
+          </div>
+        </div>
+        <div class="preview-content">
+          <div class="preview-loading" id="preview-loading">
+            <div class="build-log" id="build-log">
+              <div class="build-log-title">◈ Build Process</div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+          </div>
+          <iframe class="preview-iframe" id="preview-iframe" style="display:none"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Call Modal -->
+<div class="modal-overlay" id="vc-modal">
+  <div class="videocall-modal">
+    <div class="vc-header">
+      <div class="vc-title">📹 Video Call dengan Nexura AI</div>
+      <button class="vc-close" onclick="closeVideoCall()">✕</button>
+    </div>
+    <div class="vc-body">
+      <div class="vc-user-feed">
+        <div style="font-size:40px">👤</div>
+        <div class="vc-label"><strong>Anda</strong>Kamera Aktif</div>
+      </div>
+      <div class="vc-ai-feed">
+        <div class="ai-avatar-vc" id="ai-vc-avatar">🤖</div>
+        <div class="vc-label" style="color:rgba(255,255,255,0.8)"><strong style="color:#fff">Nexura AI</strong>Siap berbicara</div>
+        <div style="position:absolute;bottom:10px;display:flex;gap:4px" id="ai-sound-bars">
+          <div style="width:3px;height:8px;background:var(--gold);border-radius:2px;animation:soundBar 0.8s infinite 0s alternate"></div>
+          <div style="width:3px;height:14px;background:var(--gold);border-radius:2px;animation:soundBar 0.8s infinite 0.1s alternate"></div>
+          <div style="width:3px;height:6px;background:var(--gold);border-radius:2px;animation:soundBar 0.8s infinite 0.2s alternate"></div>
+          <div style="width:3px;height:16px;background:var(--gold);border-radius:2px;animation:soundBar 0.8s infinite 0.3s alternate"></div>
+          <div style="width:3px;height:10px;background:var(--gold);border-radius:2px;animation:soundBar 0.8s infinite 0.4s alternate"></div>
+        </div>
+      </div>
+      <div class="vc-speech" id="vc-speech-box">Halo! Saya Nexura AI 🤖 Apa yang ingin kamu bangun hari ini? Ceritakan ide websitemu!</div>
+      <div class="vc-controls">
+        <button class="vc-btn mic" id="vc-mic-btn" onclick="toggleMic()">🎤</button>
+        <button class="vc-btn cam">📷</button>
+        <button class="vc-btn end" onclick="closeVideoCall()">📵</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Modal -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="publish-modal">
+    <div class="publish-icon">🎉</div>
+    <div class="publish-title">Website Berhasil Dipublish!</div>
+    <div class="publish-sub">Website kamu sudah live dan bisa diakses oleh siapa saja di seluruh dunia melalui link berikut:</div>
+    <div class="publish-url" id="publish-url">https://nexura.app/site/xxxxxxxx</div>
+    <div class="publish-actions">
+      <button class="pub-btn" onclick="copyPublishUrl()">📋 Salin Link</button>
+      <button class="pub-btn-sec" onclick="document.getElementById('publish-modal').classList.remove('active')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<style>@keyframes soundBar{from{height:4px}to{height:20px}}</style>
+
+<script>
+// ===== STATE =====
+const state={
+  theme:'dark',
+  firstName:'',
+  lastName:'',
+  chatCount:0,
+  maxChat:5,
+  limitResetTime:null,
+  currentTool:null,
+  messages:[],
+  histories:[],
+  currentHistoryId:null,
+  generatedCode:'',
+  isBuilding:false
+};
+
+// Load from localStorage
+function loadState(){
+  try{
+    const s=localStorage.getItem('nexura_state');
+    if(s){
+      const parsed=JSON.parse(s);
+      Object.assign(state,parsed);
+    }
+  }catch(e){}
+}
+function saveState(){
+  try{localStorage.setItem('nexura_state',JSON.stringify(state))}catch(e){}
+}
+
+// ===== THREE.JS BACKGROUND =====
+let renderer,scene,camera,particles;
+function initThree(){
+  const canvas=document.getElementById('three-canvas');
+  renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,.1,1000);
+  camera.position.z=30;
+  
+  // Particle field
+  const geo=new THREE.BufferGeometry();
+  const count=800;
+  const pos=new Float32Array(count*3);
+  for(let i=0;i<count*3;i++){pos[i]=(Math.random()-.5)*100}
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({size:.3,color:0xD4AF37,transparent:true,opacity:.6});
+  particles=new THREE.Points(geo,mat);
+  scene.add(particles);
+  
+  // Floating torus
+  const tor=new THREE.TorusGeometry(8,1,12,60);
+  const torMat=new THREE.MeshBasicMaterial({color:0xD4AF37,wireframe:true,transparent:true,opacity:.08});
+  const torus=new THREE.Mesh(tor,torMat);
+  torus.name='torus';
+  scene.add(torus);
+  
+  animThree();
+}
+function animThree(){
+  requestAnimationFrame(animThree);
+  if(!renderer)return;
+  particles.rotation.y+=.0003;
+  particles.rotation.x+=.0001;
+  const torus=scene.getObjectByName('torus');
+  if(torus){torus.rotation.x+=.002;torus.rotation.y+=.003}
+  renderer.render(scene,camera);
+}
+window.addEventListener('resize',()=>{
+  if(!renderer)return;
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// ===== N 3D CANVAS =====
+let nRenderer,nScene,nCamera,nLetter3D;
+function initN3D(){
+  const canvas=document.getElementById('n-3d-canvas');
+  if(!canvas)return;
+  nRenderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  const w=600,h=500;
+  nRenderer.setSize(w,h);
+  nScene=new THREE.Scene();
+  nCamera=new THREE.PerspectiveCamera(60,w/h,.1,100);
+  nCamera.position.z=5;
+  
+  // Gold particles around N
+  const geo=new THREE.BufferGeometry();
+  const count=200;
+  const pos=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const r=1.5+Math.random()*2;
+    pos[i*3]=Math.cos(angle)*r;
+    pos[i*3+1]=(Math.random()-.5)*4;
+    pos[i*3+2]=Math.sin(angle)*r;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({size:.05,color:0xD4AF37,transparent:true,opacity:.8});
+  const pts=new THREE.Points(geo,mat);
+  pts.name='npts';
+  nScene.add(pts);
+  animN3D();
+}
+function animN3D(){
+  requestAnimationFrame(animN3D);
+  if(!nRenderer)return;
+  const pts=nScene.getObjectByName('npts');
+  if(pts){pts.rotation.y+=.005}
+  nRenderer.render(nScene,nCamera);
+}
+
+// ===== SCROLL ANIMATIONS =====
+function initScrollReveal(){
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        // Trigger hands animation
+        if(e.target.classList.contains('n-scene')){
+          setTimeout(()=>animateHands(),300);
+          if(!nRenderer)initN3D();
+        }
+      }
+    });
+  },{threshold:.2});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+}
+function animateHands(){
+  const lh=document.getElementById('left-hand');
+  const rh=document.getElementById('right-hand');
+  const nl=document.getElementById('n-letter');
+  if(!lh||!rh)return;
+  
+  // Animate opacity
+  let op=0;
+  const anim=setInterval(()=>{
+    op=Math.min(op+.04,1);
+    if(lh)lh.setAttribute('opacity',op);
+    if(rh)rh.setAttribute('opacity',op);
+    if(op>=1)clearInterval(anim);
+  },40);
+  
+  // Animate hands position
+  let progress=0;
+  const moveAnim=setInterval(()=>{
+    progress=Math.min(progress+2,0);
+    if(progress>=0)clearInterval(moveAnim);
+  },16);
+}
+
+// ===== NAVIGATION =====
+function goToOnboarding(){
+  loadState();
+  // If already registered, go directly to chat
+  if(state.firstName){
+    showChatApp();
+    return;
+  }
+  document.getElementById('landing').style.display='none';
+  document.getElementById('onboarding').classList.add('active');
+  applyTheme(state.theme);
+}
+
+function selectTheme(t){
+  state.theme='dark'==t?'dark':'light';
+  document.getElementById('theme-dark').classList.toggle('selected','dark'===t);
+  document.getElementById('theme-light').classList.toggle('selected','light'===t);
+  applyTheme(state.theme);
+}
+
+function applyTheme(t){
+  if(t==='light'){document.body.classList.add('light')}
+  else{document.body.classList.remove('light')}
+  // Update form styles
+  const nf=document.getElementById('name-form');
+  if(nf){nf.className=t==='light'?'light-form':''}
+}
+
+function nextStep(){
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('dot1').classList.remove('active');
+  document.getElementById('dot2').classList.add('active');
+}
+
+function completeOnboarding(){
+  const fn=document.getElementById('first-name').value.trim();
+  const ln=document.getElementById('last-name').value.trim();
+  if(!fn){showToast('⚠️ Masukkan nama depan Anda');return}
+  if(!ln){showToast('⚠️ Masukkan nama belakang Anda');return}
+  state.firstName=fn;
+  state.lastName=ln;
+  state.chatCount=0;
+  state.limitResetTime=null;
+  state.messages=[];
+  state.histories=[];
+  saveState();
+  showChatApp();
+}
+
+function showChatApp(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('onboarding').classList.remove('active');
+  document.getElementById('chat-app').classList.add('active');
+  applyTheme(state.theme);
+  initChatUI();
+}
+
+// ===== CHAT UI =====
+function initChatUI(){
+  const fullName=state.firstName+' '+state.lastName;
+  const initials=(state.firstName[0]+(state.lastName[0]||'')).toUpperCase();
+  
+  document.getElementById('chat-welcome-name').textContent=fullName.toUpperCase();
+  document.getElementById('user-name-sidebar').textContent=fullName;
+  document.getElementById('user-email-sidebar').textContent=state.firstName.toLowerCase()+'@nexura.app';
+  document.getElementById('user-avatar-sidebar').textContent=initials;
+  document.getElementById('user-avatar-header').textContent=initials;
+  
+  updateLimitBadge();
+  renderHistory();
+  
+  // Check limit reset
+  checkLimitReset();
+  
+  // Show welcome message if no messages
+  if(state.messages.length===0){
+    addAIMessage(`Halo, **${state.firstName}!** 👋 Selamat datang di **Nexura AI** — asisten AI untuk membangun website impianmu.\n\nSaya bisa membantu kamu:\n• 🌐 **Website Builder** — Website multi-halaman dengan React + Next.js\n• 🚀 **Landing Page** — Satu halaman yang mengkonversi\n• 📹 **Video Call** — Konsultasi langsung dengan saya\n\nApa yang ingin kamu bangun hari ini?`);
+  } else {
+    state.messages.forEach(m=>{
+      if(m.role==='ai') renderAIMsg(m.content,false);
+      else renderUserMsg(m.content,false);
+    });
+  }
+}
+
+function checkLimitReset(){
+  if(state.limitResetTime&&Date.now()>state.limitResetTime){
+    state.chatCount=0;
+    state.limitResetTime=null;
+    saveState();
+  }
+}
+
+function updateLimitBadge(){
+  const rem=Math.max(0,state.maxChat-state.chatCount);
+  document.getElementById('limit-badge').textContent=`${rem} chat tersisa`;
+  document.getElementById('chat-limit-text').textContent=`${rem} pesan tersisa hari ini`;
+}
+
+function addAIMessage(content,save=true){
+  if(save){state.messages.push({role:'ai',content});saveState()}
+  renderAIMsg(content,true);
+}
+function renderAIMsg(content,animate=true){
+  const el=document.createElement('div');
+  el.className='msg ai';
+  el.innerHTML=`<div class="msg-avatar">N</div><div class="msg-bubble">${formatMsg(content)}</div>`;
+  if(!animate)el.style.animation='none';
+  document.getElementById('messages-container').appendChild(el);
+  scrollToBottom();
+}
+function addUserMessage(content,save=true){
+  if(save){state.messages.push({role:'user',content});saveState()}
+  renderUserMsg(content,true);
+}
+function renderUserMsg(content,animate=true){
+  const el=document.createElement('div');
+  el.className='msg user';
+  el.innerHTML=`<div class="msg-avatar">${(state.firstName[0]+(state.lastName[0]||'')).toUpperCase()}</div><div class="msg-bubble">${escHtml(content)}</div>`;
+  if(!animate)el.style.animation='none';
+  document.getElementById('messages-container').appendChild(el);
+  scrollToBottom();
+}
+function formatMsg(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/•/g,'&bull;')
+    .replace(/\n/g,'<br>');
+}
+function escHtml(t){return t.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function scrollToBottom(){
+  const c=document.getElementById('messages-container');
+  c.scrollTop=c.scrollHeight;
+}
+
+function showTyping(){
+  const el=document.createElement('div');
+  el.className='msg ai';
+  el.id='typing-indicator';
+  el.innerHTML=`<div class="msg-avatar">N</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  document.getElementById('messages-container').appendChild(el);
+  scrollToBottom();
+}
+function removeTyping(){
+  const el=document.getElementById('typing-indicator');
+  if(el)el.remove();
+}
+
+// ===== SEND MESSAGE =====
+async function sendMessage(){
+  checkLimitReset();
+  if(state.chatCount>=state.maxChat){
+    if(!state.limitResetTime){
+      state.limitResetTime=Date.now()+5*60*60*1000;
+      saveState();
+    }
+    const hrs=Math.ceil((state.limitResetTime-Date.now())/3600000);
+    showToast(`⏰ Limit tercapai. Coba lagi dalam ${hrs} jam.`);
+    return;
+  }
+  
+  const input=document.getElementById('chat-input');
+  const msg=input.value.trim();
+  if(!msg)return;
+  
+  input.value='';
+  input.style.height='';
+  state.chatCount++;
+  saveState();
+  updateLimitBadge();
+  
+  addUserMessage(msg);
+  
+  // Save history
+  if(!state.currentHistoryId){
+    state.currentHistoryId=Date.now();
+    state.histories.unshift({id:state.currentHistoryId,title:msg.slice(0,35)+(msg.length>35?'...':''),time:'Baru saja'});
+    saveState();
+    renderHistory();
+  }
+  
+  showTyping();
+  
+  // Handle tool-specific requests
+  const lmsg=msg.toLowerCase();
+  const isWebsite=state.currentTool==='website'||lmsg.includes('website')||lmsg.includes('web')||lmsg.includes('buat site');
+  const isLanding=state.currentTool==='landing'||lmsg.includes('landing')||lmsg.includes('halaman tunggal')||lmsg.includes('landing page');
+  
+  if(isWebsite&&!isLanding){
+    await handleWebsiteBuild(msg);
+  } else if(isLanding){
+    await handleLandingBuild(msg);
+  } else {
+    await handleGeneralChat(msg);
+  }
+}
+
+async function handleGeneralChat(msg){
+  await delay(800+Math.random()*600);
+  removeTyping();
+  const responses=[
+    `Pertanyaan yang bagus! 💡 Untuk membangun website yang kamu inginkan, saya sarankan menggunakan **React + Next.js** untuk frontend dan **Node.js** untuk backend.\n\nCoba klik tombol **Website Builder** atau **Landing Page** di bawah dan ceritakan detail proyekmu!`,
+    `Saya mengerti! ✨ Nexura AI siap membantu kamu mewujudkan ide ini menjadi website nyata.\n\nUntuk memulai, pilih jenis yang kamu butuhkan:\n• 🌐 **Website** — Banyak halaman, fitur lengkap\n• 🚀 **Landing Page** — Satu halaman yang powerful`,
+    `Keren banget idenya! 🔥 Dengan teknologi stack yang saya gunakan (React, Next.js, Node.js, PostgreSQL), kamu akan mendapatkan website yang cepat, modern, dan scalable.\n\nMau langsung mulai? Ketik detail websitemu atau klik **Website Builder**!`,
+    `Tentu, ${state.firstName}! Saya siap. 🎯 Ceritakan lebih detail — target audiensnya siapa, fitur apa yang paling penting, dan tampilan seperti apa yang kamu bayangkan?`,
+  ];
+  addAIMessage(responses[Math.floor(Math.random()*responses.length)]);
+}
+
+async function handleWebsiteBuild(prompt){
+  const panel=document.getElementById('preview-panel');
+  const loading=document.getElementById('preview-loading');
+  const iframe=document.getElementById('preview-iframe');
+  const buildLog=document.getElementById('build-log');
+  
+  panel.classList.remove('hidden');
+  loading.style.display='flex';
+  iframe.style.display='none';
+  document.getElementById('preview-title').textContent='🌐 Building Website...';
+  
+  // Determine complexity
+  const complex=prompt.length>80||prompt.includes('ecommerce')||prompt.includes('portfolio')||prompt.includes('dashboard')||prompt.includes('blog');
+  const buildTime=complex?7000:3000;
+  
+  await delay(600);
+  removeTyping();
+  addAIMessage(`Siap! Saya akan membangun website "${prompt.slice(0,40)}..." menggunakan:\n• ⚛️ **React + Next.js** (Frontend)\n• 🟢 **Node.js** (Backend)\n• 🐘 **PostgreSQL** (Database)\n\nMulai proses build sekarang... ⚙️`);
+  
+  // Build log animation
+  buildLog.innerHTML='<div class="build-log-title">◈ Build Process</div>';
+  const logs=complex?[
+    {s:'run',t:'Initializing Next.js 14 project structure...'},
+    {s:'ok',t:'package.json created with dependencies'},
+    {s:'run',t:'Setting up React components architecture...'},
+    {s:'ok',t:'src/components/ directory initialized'},
+    {s:'run',t:'Configuring Next.js router & pages...'},
+    {s:'ok',t:'app/layout.tsx — Root layout configured'},
+    {s:'run',t:'Building PostgreSQL schema...'},
+    {s:'ok',t:'migrations/001_init.sql created'},
+    {s:'run',t:'Setting up Node.js Express backend...'},
+    {s:'ok',t:'server/index.js — API routes mounted'},
+    {s:'run',t:'Configuring Tailwind CSS + custom theme...'},
+    {s:'ok',t:'tailwind.config.ts optimized'},
+    {s:'info',t:'Generating responsive components...'},
+    {s:'ok',t:'Hero, Navbar, Footer, Cards built'},
+    {s:'run',t:'Adding animations & transitions...'},
+    {s:'ok',t:'Framer Motion integrated'},
+    {s:'run',t:'Running TypeScript compilation...'},
+    {s:'ok',t:'✓ Build successful — 0 errors'},
+    {s:'ok',t:'✓ Ready to publish'},
+  ]:[
+    {s:'run',t:'Initializing React project...'},
+    {s:'ok',t:'Dependencies installed'},
+    {s:'run',t:'Building component tree...'},
+    {s:'ok',t:'App structure created'},
+    {s:'run',t:'Styling with Tailwind CSS...'},
+    {s:'ok',t:'Responsive layout ready'},
+    {s:'run',t:'Adding interactivity...'},
+    {s:'ok',t:'JavaScript functions compiled'},
+    {s:'ok',t:'✓ Website built successfully'},
+  ];
+  
+  const prog=document.getElementById('progress-bar');
+  const interval=buildTime/logs.length;
+  
+  for(let i=0;i<logs.length;i++){
+    await delay(interval);
+    const line=document.createElement('div');
+    line.className='log-line';
+    line.innerHTML=`<span class="log-status ${logs[i].s}">${logs[i].s.toUpperCase()}</span><span class="log-text">${logs[i].t}</span>`;
+    buildLog.appendChild(line);
+    prog.style.width=((i+1)/logs.length*100)+'%';
+    buildLog.scrollTop=buildLog.scrollHeight;
+  }
+  
+  await delay(500);
+  
+  // Generate website HTML
+  const code=generateWebsite(prompt);
+  state.generatedCode=code;
+  saveState();
+  
+  loading.style.display='none';
+  iframe.style.display='block';
+  iframe.srcdoc=code;
+  document.getElementById('preview-title').textContent='✅ Website Preview';
+  
+  addAIMessage(`✅ Website berhasil dibuat! **${complex?'7':'3'} halaman** sudah siap.\n\nLihat preview di panel kanan. Kamu bisa:\n• 🔄 **Refresh** untuk reload\n• 📥 **Download** source code\n• 🚀 **Publish** ke nexura.app\n\nAda yang ingin diubah atau ditambahkan?`);
+}
+
+async function handleLandingBuild(prompt){
+  const panel=document.getElementById('preview-panel');
+  const loading=document.getElementById('preview-loading');
+  const iframe=document.getElementById('preview-iframe');
+  const buildLog=document.getElementById('build-log');
+  
+  panel.classList.remove('hidden');
+  loading.style.display='flex';
+  iframe.style.display='none';
+  document.getElementById('preview-title').textContent='🚀 Building Landing Page...';
+  
+  await delay(600);
+  removeTyping();
+  addAIMessage(`Membuat landing page untuk "${prompt.slice(0,40)}..." menggunakan **HTML5 + CSS3 + JavaScript** dengan desain premium.\n\nEstimasi: **3 menit** ⚡`);
+  
+  buildLog.innerHTML='<div class="build-log-title">◈ Landing Page Build</div>';
+  const logs=[
+    {s:'run',t:'Parsing design requirements...'},
+    {s:'ok',t:'Color scheme & typography selected'},
+    {s:'run',t:'Building Hero section...'},
+    {s:'ok',t:'Hero with CTA button ready'},
+    {s:'run',t:'Creating Features grid...'},
+    {s:'ok',t:'6 feature cards generated'},
+    {s:'run',t:'Adding scroll animations...'},
+    {s:'ok',t:'AOS animations configured'},
+    {s:'run',t:'Optimizing for mobile...'},
+    {s:'ok',t:'Responsive breakpoints set'},
+    {s:'ok',t:'✓ Landing page complete!'},
+  ];
+  
+  const prog=document.getElementById('progress-bar');
+  const interval=3000/logs.length;
+  for(let i=0;i<logs.length;i++){
+    await delay(interval);
+    const line=document.createElement('div');
+    line.className='log-line';
+    line.innerHTML=`<span class="log-status ${logs[i].s}">${logs[i].s.toUpperCase()}</span><span class="log-text">${logs[i].t}</span>`;
+    buildLog.appendChild(line);
+    prog.style.width=((i+1)/logs.length*100)+'%';
+    buildLog.scrollTop=buildLog.scrollHeight;
+  }
+  
+  await delay(400);
+  const code=generateLandingPage(prompt);
+  state.generatedCode=code;
+  saveState();
+  
+  loading.style.display='none';
+  iframe.style.display='block';
+  iframe.srcdoc=code;
+  document.getElementById('preview-title').textContent='✅ Landing Page Preview';
+  
+  addAIMessage(`✅ Landing page siap! Desain premium dengan **hero section**, **features**, **testimonial**, dan **CTA**.\n\nKlik **Publish** untuk langsung live di nexura.app! 🚀`);
+}
+
+function generateWebsite(prompt){
+  const title=prompt.slice(0,30)||'Modern Website';
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#6C63FF;--dark:#0A0A0F;--white:#fff;--gray:#888;--card:#111118}
+body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--white);overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,15,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05)}
+.logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,#6C63FF,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--gray);text-decoration:none;font-size:14px;transition:.2s}
+.nav-links a:hover{color:var(--white)}
+.nav-btn{background:linear-gradient(135deg,#6C63FF,#a78bfa);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;cursor:pointer;font-size:14px}
+.hero{min-height:100vh;display:flex;align-items:center;padding:100px 60px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(108,99,255,.15),transparent 70%);pointer-events:none}
+.hero-content{max-width:620px;position:relative;z-index:1}
+.hero-tag{display:inline-block;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:#a78bfa;padding:6px 14px;border-radius:50px;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+.hero h1{font-size:64px;font-weight:800;line-height:1.05;margin-bottom:20px;letter-spacing:-2px}
+.hero h1 span{background:linear-gradient(135deg,#6C63FF,#a78bfa,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:17px;color:var(--gray);line-height:1.7;margin-bottom:36px}
+.hero-btns{display:flex;gap:14px}
+.btn-p{background:linear-gradient(135deg,#6C63FF,#a78bfa);color:#fff;border:none;padding:14px 32px;border-radius:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer}
+.btn-s{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;padding:14px 32px;border-radius:10px;font-family:'Inter',sans-serif;font-weight:500;font-size:14px;cursor:pointer}
+.hero-vis{position:absolute;right:60px;top:50%;transform:translateY(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(108,99,255,.2),transparent);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.hero-vis-inner{width:280px;height:280px;background:linear-gradient(135deg,rgba(108,99,255,.3),rgba(56,189,248,.1));border-radius:24px;border:1px solid rgba(108,99,255,.3);display:flex;align-items:center;justify-content:center;font-size:80px}
+.features{padding:100px 60px;background:rgba(255,255,255,.01)}
+.section-title{text-align:center;font-size:42px;font-weight:800;margin-bottom:12px;letter-spacing:-1px}
+.section-sub{text-align:center;color:var(--gray);margin-bottom:64px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:32px;transition:.3s}
+.card:hover{border-color:rgba(108,99,255,.3);transform:translateY(-4px)}
+.card-icon{font-size:36px;margin-bottom:16px}
+.card-title{font-size:17px;font-weight:700;margin-bottom:10px}
+.card-desc{font-size:14px;color:var(--gray);line-height:1.7}
+.cta-section{padding:100px 60px;text-align:center;background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(56,189,248,.05))}
+.cta-section h2{font-size:48px;font-weight:800;margin-bottom:16px;letter-spacing:-1px}
+.cta-section p{color:var(--gray);margin-bottom:36px;font-size:16px}
+footer{padding:40px 60px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center}
+footer p{color:var(--gray);font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">${escHtml(title.split(' ')[0]||'Brand')}</div>
+  <ul class="nav-links">
+    <li><a href="#">Home</a></li><li><a href="#">Features</a></li><li><a href="#">Pricing</a></li><li><a href="#">About</a></li>
+  </ul>
+  <button class="nav-btn">Get Started</button>
+</nav>
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">✦ Next Generation Platform</div>
+    <h1>Build the <span>Future</span> Today</h1>
+    <p>Platform terdepan untuk membangun pengalaman digital yang luar biasa. Cepat, modern, dan skalabel.</p>
+    <div class="hero-btns">
+      <button class="btn-p">Mulai Sekarang →</button>
+      <button class="btn-s">Lihat Demo</button>
+    </div>
+  </div>
+  <div class="hero-vis"><div class="hero-vis-inner">🚀</div></div>
+</div>
+<div class="features">
+  <div class="section-title">Fitur Unggulan</div>
+  <div class="section-sub">Semua yang kamu butuhkan dalam satu platform</div>
+  <div class="grid">
+    <div class="card"><div class="card-icon">⚡</div><div class="card-title">Super Cepat</div><div class="card-desc">Dioptimalkan untuk performa maksimum dengan loading time di bawah 1 detik.</div></div>
+    <div class="card"><div class="card-icon">🔒</div><div class="card-title">Keamanan Tinggi</div><div class="card-desc">Enkripsi end-to-end dan keamanan tingkat enterprise untuk data Anda.</div></div>
+    <div class="card"><div class="card-icon">📱</div><div class="card-title">Mobile-First</div><div class="card-desc">Desain responsif yang sempurna di semua perangkat dan ukuran layar.</div></div>
+    <div class="card"><div class="card-icon">🤖</div><div class="card-title">AI-Powered</div><div class="card-desc">Didukung kecerdasan buatan untuk pengalaman yang lebih personal.</div></div>
+    <div class="card"><div class="card-icon">📊</div><div class="card-title">Analytics</div><div class="card-desc">Dashboard analitik real-time untuk memantau performa bisnis Anda.</div></div>
+    <div class="card"><div class="card-icon">🌍</div><div class="card-title">Global CDN</div><div class="card-desc">Jaringan distribusi global untuk loading cepat dari mana saja.</div></div>
+  </div>
+</div>
+<div class="cta-section">
+  <h2>Siap untuk memulai?</h2>
+  <p>Bergabung dengan ribuan pengguna yang sudah mempercayai platform kami.</p>
+  <button class="btn-p" style="font-size:15px;padding:16px 40px">Daftar Gratis Sekarang</button>
+</div>
+<footer>
+  <p>© 2026 ${escHtml(title.split(' ')[0]||'Brand')}. All rights reserved.</p>
+  <p>Built with Nexura AI</p>
+</footer>
+</body></html>`;
+}
+
+function generateLandingPage(prompt){
+  const kw=prompt.toLowerCase();
+  const color=kw.includes('merah')||kw.includes('red')?'#e53e3e':kw.includes('biru')||kw.includes('blue')?'#3182ce':kw.includes('hijau')||kw.includes('green')?'#38a169':'#805AD5';
+  const title=prompt.slice(0,35)||'Amazing Product';
+  
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:${color};--dark:#050508;--white:#fff;--gray:#9999aa}
+body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--white);overflow-x:hidden}
+nav{padding:20px 80px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{font-size:22px;font-weight:900;color:var(--accent)}
+.nav-btn{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;cursor:pointer}
+.hero{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,${color}22 0%,transparent 65%);pointer-events:none}
+.eyebrow{font-size:12px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;font-weight:700}
+.hero h1{font-size:80px;font-weight:900;line-height:1;letter-spacing:-3px;margin-bottom:24px;max-width:800px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{font-size:18px;color:var(--gray);max-width:540px;line-height:1.7;margin-bottom:44px}
+.cta-group{display:flex;gap:16px}
+.cta-main{background:var(--accent);color:#fff;border:none;padding:18px 44px;border-radius:12px;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;cursor:pointer;transition:.3s}
+.cta-main:hover{transform:translateY(-3px);box-shadow:0 20px 40px ${color}55}
+.cta-sec{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;padding:18px 44px;border-radius:12px;font-family:'Inter',sans-serif;font-weight:600;font-size:16px;cursor:pointer}
+.stats{display:flex;gap:60px;justify-content:center;padding:60px;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05)}
+.stat{text-align:center}
+.stat-n{font-size:48px;font-weight:900;color:var(--accent);line-height:1}
+.stat-l{font-size:13px;color:var(--gray);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+.features{padding:100px 80px}
+.features h2{text-align:center;font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:60px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.feat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:36px;transition:.3s}
+.feat-card:hover{border-color:${color}55;background:${color}0d;transform:translateY(-6px)}
+.feat-icon{font-size:40px;margin-bottom:18px}
+.feat-title{font-size:18px;font-weight:700;margin-bottom:10px}
+.feat-desc{font-size:14px;color:var(--gray);line-height:1.7}
+.testimonials{padding:80px;background:rgba(255,255,255,.01)}
+.testimonials h2{text-align:center;font-size:40px;font-weight:800;margin-bottom:50px;letter-spacing:-1px}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testi-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px}
+.testi-text{font-size:15px;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:20px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:12px}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.testi-name{font-size:14px;font-weight:700}
+.testi-role{font-size:12px;color:var(--gray)}
+.final-cta{padding:100px 80px;text-align:center;background:radial-gradient(ellipse at center,${color}18,transparent)}
+.final-cta h2{font-size:56px;font-weight:900;letter-spacing:-2px;margin-bottom:16px}
+.final-cta p{color:var(--gray);font-size:17px;margin-bottom:40px}
+footer{padding:30px 80px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center}
+footer p{color:var(--gray);font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">${escHtml(title.split(' ')[0]||'Brand')}</div>
+  <button class="nav-btn">Get Started</button>
+</nav>
+<div class="hero">
+  <div class="eyebrow">✦ The Future Is Here</div>
+  <h1>Build <em>Faster.</em><br>Grow <em>Bigger.</em></h1>
+  <p>${escHtml(prompt.slice(0,120)||'Platform terbaik untuk mewujudkan ide digitalmu menjadi kenyataan yang mengagumkan.')}</p>
+  <div class="cta-group">
+    <button class="cta-main">Mulai Gratis →</button>
+    <button class="cta-sec">Lihat Demo</button>
+  </div>
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-n">10K+</div><div class="stat-l">Pengguna Aktif</div></div>
+  <div class="stat"><div class="stat-n">99.9%</div><div class="stat-l">Uptime</div></div>
+  <div class="stat"><div class="stat-n">500+</div><div class="stat-l">Project Selesai</div></div>
+  <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">Support</div></div>
+</div>
+<div class="features">
+  <h2>Kenapa Kami?</h2>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">⚡</div><div class="feat-title">Ultra Cepat</div><div class="feat-desc">Performa kelas dunia dengan loading di bawah 500ms.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎨</div><div class="feat-title">Desain Premium</div><div class="feat-desc">Template dan komponen UI yang indah dan profesional.</div></div>
+    <div class="feat-card"><div class="feat-icon">🔧</div><div class="feat-title">Mudah Dikustomasi</div><div class="feat-desc">Sesuaikan setiap detail sesuai brand identity Anda.</div></div>
+    <div class="feat-card"><div class="feat-icon">📈</div><div class="feat-title">Conversion-Ready</div><div class="feat-desc">Dioptimalkan untuk meningkatkan konversi dan penjualan.</div></div>
+    <div class="feat-card"><div class="feat-icon">📱</div><div class="feat-title">Full Responsive</div><div class="feat-desc">Sempurna di semua layar — mobile, tablet, dan desktop.</div></div>
+    <div class="feat-card"><div class="feat-icon">🚀</div><div class="feat-title">Instant Deploy</div><div class="feat-desc">Publish dalam satu klik ke domain premium kami.</div></div>
+  </div>
+</div>
+<div class="testimonials">
+  <h2>Kata Mereka</h2>
+  <div class="testi-grid">
+    <div class="testi-card"><div class="testi-text">"Luar biasa! Dalam 3 menit website saya sudah live dan tampilannya sangat profesional."</div><div class="testi-author"><div class="testi-avatar">A</div><div><div class="testi-name">Andi Pratama</div><div class="testi-role">CEO, StartupX</div></div></div></div>
+    <div class="testi-card"><div class="testi-text">"Konversi meningkat 300% sejak menggunakan platform ini. Tidak ada yang lebih baik!"</div><div class="testi-author"><div class="testi-avatar">S</div><div><div class="testi-name">Sari Dewi</div><div class="testi-role">Marketing Director</div></div></div></div>
+    <div class="testi-card"><div class="testi-text">"Support 24/7 yang responsif dan fitur yang terus berkembang. Sangat memuaskan!"</div><div class="testi-author"><div class="testi-avatar">B</div><div><div class="testi-name">Budi Santoso</div><div class="testi-role">Freelance Developer</div></div></div></div>
+  </div>
+</div>
+<div class="final-cta">
+  <h2>Siap Memulai?</h2>
+  <p>Bergabung sekarang dan dapatkan akses gratis 14 hari.</p>
+  <button class="cta-main" style="font-size:17px;padding:20px 52px">Mulai Gratis Sekarang ✦</button>
+</div>
+<footer>
+  <p>© 2026 ${escHtml(title.split(' ')[0]||'Brand')}. All rights reserved.</p>
+  <p>Made with ❤️ Nexura AI</p>
+</footer>
+</body></html>`;
+}
+
+// ===== TOOLS =====
+let currentActiveTool=null;
+function activateTool(tool){
+  currentActiveTool=tool;
+  state.currentTool=tool;
+  
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tool-'+tool).classList.add('active');
+  
+  const input=document.getElementById('chat-input');
+  if(tool==='website'){
+    input.placeholder='Deskripsikan website yang ingin dibuat (contoh: website toko online produk fashion dengan halaman home, catalog, dan checkout)...';
+    addAIMessage(`🌐 **Website Builder aktif!**\n\nCeritakan website yang ingin kamu buat. Semakin detail deskripsinya, semakin bagus hasilnya!\n\nContoh: *"Buat website portfolio untuk desainer grafis dengan halaman home, about, portfolio, dan contact"*`);
+  } else if(tool==='landing'){
+    input.placeholder='Deskripsikan landing page yang ingin dibuat (produk/jasa/brand apa?)...';
+    addAIMessage(`🚀 **Landing Page Builder aktif!**\n\nLanding page satu halaman yang powerful dan mengkonversi.\n\nContoh: *"Buat landing page untuk aplikasi manajemen keuangan personal"*`);
+  }
+}
+
+// ===== VIDEO CALL =====
+const vcSpeeches=[
+  'Halo! Saya Nexura AI 🤖 Apa yang ingin kamu bangun hari ini?',
+  'Wah ide yang menarik! Bisa ceritakan lebih detail?',
+  'Saya bisa bantu buat itu! Berapa halaman yang kamu butuhkan?',
+  'Untuk website seperti itu, saya rekomendasikan React + Next.js ya!',
+  'Tentu bisa! Warna apa yang kamu suka untuk desainnya?',
+  'Keren! Kamu mau ada fitur login atau tidak?',
+  'Sip! Nanti saya langsung buatkan ya, tunggu sebentar!',
+  'Selesai! Preview sudah ada di panel kanan chat. Coba lihat!',
+];
+let vcSpeechIdx=0;
+let vcInterval;
+
+function openVideoCall(){
+  document.getElementById('vc-modal').classList.add('active');
+  document.getElementById('vc-speech-box').textContent=vcSpeeches[0];
+  vcSpeechIdx=0;
+  vcInterval=setInterval(()=>{
+    vcSpeechIdx=(vcSpeechIdx+1)%vcSpeeches.length;
+    document.getElementById('vc-speech-box').textContent=vcSpeeches[vcSpeechIdx];
+  },4000);
+}
+function closeVideoCall(){
+  document.getElementById('vc-modal').classList.remove('active');
+  clearInterval(vcInterval);
+}
+function toggleMic(){
+  const btn=document.getElementById('vc-mic-btn');
+  btn.textContent=btn.textContent==='🎤'?'🔇':'🎤';
+}
+
+// ===== PUBLISH =====
+function publishSite(){
+  if(!state.generatedCode){showToast('⚠️ Belum ada website yang dibuat.');return}
+  const slug=state.firstName.toLowerCase()+'-'+Math.random().toString(36).slice(2,7);
+  document.getElementById('publish-url').textContent='https://nexura.app/site/'+slug;
+  document.getElementById('publish-modal').classList.add('active');
+}
+function copyPublishUrl(){
+  const url=document.getElementById('publish-url').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('✓ Link disalin!')).catch(()=>showToast('Salin manual: '+url));
+}
+function refreshPreview(){
+  const iframe=document.getElementById('preview-iframe');
+  if(iframe.srcdoc)iframe.srcdoc=iframe.srcdoc;
+}
+function downloadCode(){
+  if(!state.generatedCode){showToast('⚠️ Tidak ada kode untuk didownload.');return}
+  const blob=new Blob([state.generatedCode],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='nexura-website.html';
+  a.click();
+  showToast('✓ File HTML didownload!');
+}
+
+// ===== HISTORY =====
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  list.innerHTML='';
+  if(state.histories.length===0){
+    list.innerHTML='<div style="padding:8px 10px;font-size:12px;color:var(--gray2)">Belum ada history</div>';
+    return;
+  }
+  state.histories.slice(0,8).forEach(h=>{
+    const el=document.createElement('div');
+    el.className='history-item'+(h.id===state.currentHistoryId?' active':'');
+    el.innerHTML=`<div class="history-item-icon">💬</div><div class="history-item-text"><div class="history-item-title">${escHtml(h.title)}</div><div class="history-item-time">${h.time}</div></div><div class="history-item-dots">···</div>`;
+    el.addEventListener('click',()=>loadHistory(h.id));
+    list.appendChild(el);
+  });
+}
+function loadHistory(id){
+  showToast('History dimuat');
+  state.histories.forEach(h=>{if(h.id===id)state.currentHistoryId=id});
+  renderHistory();
+}
+
+function newChat(){
+  state.currentHistoryId=null;
+  state.messages=[];
+  state.currentTool=null;
+  currentActiveTool=null;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('messages-container').innerHTML='';
+  document.getElementById('preview-panel').classList.add('hidden');
+  document.getElementById('preview-iframe').style.display='none';
+  document.getElementById('preview-loading').style.display='flex';
+  saveState();
+  addAIMessage(`Chat baru dimulai! 🌟 Apa yang ingin kamu buat, ${state.firstName}?`);
+}
+
+// ===== HELPERS =====
+function handleKeydown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+}
+function autoResize(el){
+  el.style.height='';
+  el.style.height=Math.min(el.scrollHeight,140)+'px';
+}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function showToast(msg){
+  const t=document.createElement('div');
+  t.className='toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';setTimeout(()=>t.remove(),300)},3000);
+}
+
+// ===== INIT =====
+window.addEventListener('load',()=>{
+  loadState();
+  initThree();
+  initScrollReveal();
+  
+  // If already registered, show chat directly
+  if(state.firstName&&location.hash==='#app'){
+    showChatApp();
+  }
+  
+  // Close modals on overlay click
+  document.getElementById('vc-modal').addEventListener('click',function(e){if(e.target===this)closeVideoCall()});
+  document.getElementById('publish-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('active')});
+  
+  // Mouse parallax for hero
+  document.addEventListener('mousemove',e=>{
+    const x=(e.clientX/window.innerWidth-.5)*.5;
+    const y=(e.clientY/window.innerHeight-.5)*.5;
+    if(camera){camera.position.x+=(x-camera.position.x)*.02;camera.position.y+=(-y-camera.position.y)*.02}
+  });
+});
+</script>
+</body>
+</html>`;
